@@ -1,0 +1,31 @@
+-- Drop the table if it exists
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE customers';
+EXCEPTION
+    WHEN OTHERS THEN NULL;
+END;
+/
+
+-- Create the customers table
+CREATE TABLE customers (
+    customer_id     NUMBER,
+    name            VARCHAR2(50),
+    age             NUMBER,
+    balance         NUMBER,
+    interest_rate   NUMBER(5,2),
+    due_date        DATE,
+    is_vip          CHAR(1)
+);
+/
+
+-- Insert sample customer data
+BEGIN
+    INSERT INTO customers VALUES (1, 'John', 65, 8000, 9.5, SYSDATE + 10, NULL);
+    INSERT INTO customers VALUES (2, 'Mary', 45, 15000, 8.5, SYSDATE + 40, NULL);
+    INSERT INTO customers VALUES (3, 'David', 70, 12000, 10.0, SYSDATE + 5, NULL);
+    COMMIT;
+END;
+/
+
+-- View the customer table (optional)
+SELECT * FROM customers;
