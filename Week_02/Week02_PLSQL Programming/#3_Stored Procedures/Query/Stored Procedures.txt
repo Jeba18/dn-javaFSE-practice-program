@@ -1,0 +1,119 @@
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE accounts';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE employees';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+
+CREATE TABLE accounts (
+    account_id   NUMBER,
+    customer_id  NUMBER,
+    account_type VARCHAR2(20),
+    balance      NUMBER
+);
+
+
+CREATE TABLE employees (
+    emp_id     NUMBER,
+    name       VARCHAR2(50),
+    department VARCHAR2(50),
+    salary     NUMBER
+);
+
+
+INSERT INTO accounts VALUES (1, 101, 'Savings', 5000);
+INSERT INTO accounts VALUES (2, 102, 'Savings', 8000);
+INSERT INTO accounts VALUES (3, 103, 'Current', 10000);
+
+
+INSERT INTO employees VALUES (1, 'Alice', 'HR', 30000);
+INSERT INTO employees VALUES (2, 'Bob', 'IT', 40000);
+INSERT INTO employees VALUES (3, 'Charlie', 'HR', 35000);
+
+COMMIT;
+
+--Scenario 1:
+CREATE OR REPLACE PROCEDURE ProcessMonthlyInterest IS
+BEGIN
+    FOR acc IN (SELECT * FROM accounts WHERE account_type = 'Savings') LOOP
+        UPDATE accounts
+        SET balance = balance + (balance * 0.01)
+        WHERE account_id = acc.account_id;
+
+        DBMS_OUTPUT.PUT_LINE('Interest added to Account ' || acc.account_id);
+    END LOOP;
+END;
+/
+
+-- Scenario 2:
+CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus(
+    p_dept VARCHAR2,
+    p_bonus_percent NUMBER
+) IS
+BEGIN
+    FOR emp IN (SELECT * FROM employees WHERE department = p_dept) LOOP
+        UPDATE employees
+        SET salary = salary + (salary * p_bonus_percent / 100)
+        WHERE emp_id = emp.emp_id;
+
+        DBMS_OUTPUT.PUT_LINE('Bonus added for ' || emp.name);
+    END LOOP;
+END;
+/
+
+-- Scenario 3:
+CREATE OR REPLACE PROCEDURE TransferFunds(
+    p_from_account NUMBER,
+    p_to_account   NUMBER,
+    p_amount       NUMBER
+) IS
+    v_balance NUMBER;
+BEGIN
+    SELECT balance INTO v_balance FROM accounts WHERE account_id = p_from_account;
+
+    IF v_balance >= p_amount THEN
+        UPDATE accounts
+        SET balance = balance - p_amount
+        WHERE account_id = p_from_account;
+
+        UPDATE accounts
+        SET balance = balance + p_amount
+        WHERE account_id = p_to_account;
+
+        DBMS_OUTPUT.PUT_LINE('Transferred ' || p_amount || ' from Account ' || p_from_account || ' to ' || p_to_account);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Transfer failed: Insufficient balance in Account ' || p_from_account);
+    END IF;
+END;
+/
+
+-- Call Scenario 1:
+BEGIN
+    ProcessMonthlyInterest;
+END;
+/
+
+-- Call Scenario 2:
+BEGIN
+    UpdateEmployeeBonus('HR', 10); 
+END;
+/
+
+-- Call Scenario 3:
+BEGIN
+    TransferFunds(1, 2, 1000); 
+END;
+/
+
+
+SELECT * FROM accounts;
+
+
+SELECT * FROM employees;

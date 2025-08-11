@@ -1,0 +1,65 @@
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE customers';
+EXCEPTION
+    WHEN OTHERS THEN NULL;
+END;
+/
+
+CREATE TABLE customers (
+    customer_id     NUMBER,
+    name            VARCHAR2(50),
+    age             NUMBER,
+    balance         NUMBER,
+    interest_rate   NUMBER(5,2),
+    due_date        DATE,
+    is_vip          CHAR(1)
+);
+
+
+BEGIN
+    INSERT INTO customers VALUES (1, 'John', 65, 8000, 9.5, SYSDATE + 10, NULL);
+    INSERT INTO customers VALUES (2, 'Mary', 45, 15000, 8.5, SYSDATE + 40, NULL);
+    INSERT INTO customers VALUES (3, 'David', 70, 12000, 10.0, SYSDATE + 5, NULL);
+    COMMIT;
+END;
+/
+
+-- Scenario 1:
+BEGIN
+    FOR cust IN (SELECT * FROM customers) LOOP
+        IF cust.age > 60 THEN
+            UPDATE customers
+            SET interest_rate = interest_rate - 1
+            WHERE customer_id = cust.customer_id;
+            DBMS_OUTPUT.PUT_LINE(cust.name || ' got 1% interest discount.');
+        END IF;
+    END LOOP;
+END;
+/
+
+-- Scenario 2:
+BEGIN
+    FOR cust IN (SELECT * FROM customers) LOOP
+        IF cust.balance > 10000 THEN
+            UPDATE customers
+            SET is_vip = 'Y'
+            WHERE customer_id = cust.customer_id;
+            DBMS_OUTPUT.PUT_LINE(cust.name || ' is now marked as VIP.');
+        END IF;
+    END LOOP;
+END;
+/
+
+-- Scenario 3:
+BEGIN
+    FOR cust IN (SELECT * FROM customers) LOOP
+        IF cust.due_date <= SYSDATE + 30 THEN
+            DBMS_OUTPUT.PUT_LINE('Reminder: ' || cust.name || ' has a loan due on ' || TO_CHAR(cust.due_date, 'DD-MON-YYYY'));
+        END IF;
+    END LOOP;
+END;
+/
+
+-- View updated table (optional)
+SELECT * FROM customers;
